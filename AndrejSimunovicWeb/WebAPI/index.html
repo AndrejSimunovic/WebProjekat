@@ -1,0 +1,40 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+
+    <script src="Scripts/jquery-1.10.2.js"></script>
+
+    <script src="Scripts/appSctipts/functions.js?a"></script>
+    <script src="Scripts/appSctipts/registerscr.js"></script>
+    <script src="Scripts/appSctipts/loginscr.js"></script>
+    <script src="Scripts/jquery.validate.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            if (localStorage.getItem("ulogovan") == null) {
+                loadLogin();
+            }
+            else {
+                loadHomepage();
+            }
+
+
+        });
+    </script>
+
+
+</head>
+<body>
+    <header id="hdr">
+        <a href="" id="reg">Registracija</a>
+        <a href="" id="odjava"></a>
+    </header>
+    <h1>Taxi sluzba</h1>
+    <div id="regdiv">
+        
+    </div>
+    <div id="errdiv"/>
+</body>
+</html>
