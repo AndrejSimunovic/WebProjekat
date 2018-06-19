@@ -27,7 +27,7 @@ namespace WebAPI.Controllers
         [ResponseType(typeof(Korisnik))]
         public IHttpActionResult GetKorisnik(string id)
         {
-            Korisnik korisnik = db.Korisnici.Find(id);
+            Korisnik korisnik = db.Korisnici.Include(e => e.LokacijaVozaca).ToList().Find(kor => kor.KorisnikID == id);
             if (korisnik == null)
             {
                 return NotFound();
@@ -54,7 +54,6 @@ namespace WebAPI.Controllers
 
             try
             {
-               
                 db.SaveChanges();
             }
             catch (DbUpdateConcurrencyException)
@@ -79,7 +78,7 @@ namespace WebAPI.Controllers
             if (!KorisnikExists(prijava.Username))
                 return BadRequest("Neispravan username ili lozinka");
 
-            Korisnik k = db.Korisnici.Find(prijava.Username);
+            Korisnik k = db.Korisnici.Include(e => e.LokacijaVozaca).ToList().Find(kor => kor.KorisnikID == prijava.Username);
 
             if (k.Lozinka != prijava.Password)
                 return BadRequest("Neispravan username ili lozinka");

@@ -1,14 +1,26 @@
-﻿function loadHomepage() {
+﻿ 
+
+function loadHomepage() {
     let data = JSON.parse(localStorage.getItem('ulogovan'));
     $('div#regdiv').text("Dobrodosli " + data.KorisnikID);
-    $('#reg').hide();
+
+    $("#promena").show();
+    $("#promena").bind('click', function () {
+        $("#regdiv").load("./Content/partials/change.html");
+        $("#promena").hide();
+        
+        return false;
+    });
     $("#odjava").text("Odjava");
+    $("#reg").hide();
     $("#odjava").bind('click', function () {
         localStorage.removeItem('ulogovan');
         location.reload();
         return false;
     });
 }
+
+
 
 function loadLogin() {
     $("div#regdiv").load("./Content/partials/login.html");
@@ -27,26 +39,10 @@ function loadLogin() {
     });
 }
 
-//function bindLog() {
-//    $("#logform").submit(function (e) {
-//        e.preventDefault();
-//        $.post('/api/korisnici/Prijava', $('form#logform').serialize())
-//            .done(function (data, status, xhr) {
-//                $("#reg").hide();
-//                localStorage.setItem("ulogovan", JSON.stringify(data));
-//                let recievedObject = JSON.parse(localStorage.getItem("ulogovan"));
-//                $("div#errdiv").hide();
-//                loadHomepage();
-//            })
-//            .fail(function (jqXHR) {
-//                $("div#errdiv").text(jqXHR.responseJSON["Message"]).show();
-//            });
-//    });
-//}
 
 
 function doLogSubmit() {
-    $.post('/api/korisnici/Prijava', $('form#logform').serialize())
+    $.post('/api/korisnici/Prijava', $('form#logform').serialize(), "json")
         .done(function (data, status, xhr) {
             $("#reg").hide();
             localStorage.setItem("ulogovan", JSON.stringify(data));
@@ -59,19 +55,32 @@ function doLogSubmit() {
         });
 }
 
+function changeScript() {
+    let data = JSON.parse(localStorage.getItem('ulogovan'));
+    $('input[name="korisnikId"]').val(data.KorisnikID);
+    $('input[name="lozinka"]').val(data.Lozinka);
+    $('input[name="ime"]').val(data.Ime);
+    $('input[name="prezime"]').val(data.Prezime);
+    $('input[name="email"]').val(data.EMail);
+    $('input[name="jmbg"]').val(data.JMBG);
+    $('input[name="telefon"]').val(data.Telefon);
+    $('select[name="pol"]').val(data.Pol);
+    $('input[name="uloga"]').val(data.Uloga);
+    if (data.Uloga == 3) {
+        $("tr.vozacpolje").show();
+        $("input[name='lokacijavozaca_xkoordinata']").val(data.LokacijaVozaca_XKoordinata);
+        $("input[name='lokacijavozaca_ykoordinata']").val(data.LokacijaVozaca_YKoordinata);
+        $("input[name='ulica']").val(data.LokacijaVozaca.Ulica);
+        $("input[name='broj']").val(data.LokacijaVozaca.Broj);
+        $("input[name='pozivnibroj']").val(data.LokacijaVozaca.PozivniBroj);
+        $("input[name='mesto']").val(data.LokacijaVozaca.Mesto);
+    }
+    else {
+        $("tr.vozacpolje").hide();
+    }
+    validateChange();
+}
 
-//function bindReg() {
-//    $("#regform").submit(function (e) {
-//        e.preventDefault();
-//        $.post('/api/korisnici/', $('form#regform').serialize())
-//            .done(function (status, data, xhr) {
-//                alert(data);
-//            }).fail(function (jqXHR, textStatus) {
-//                alert(jqXHR.responseJSON["Message"]);
-//            });
-
-//    });
-//}
 
 function doRegistrationSubmit() {
     $.post('/api/korisnici/', $('form#regform').serialize())
@@ -120,6 +129,10 @@ function validateRegister() {
                 required: true,
                 minlength: 5
             },
+            lozinka2: {
+                required: true,
+                equalTo:"#lozinka"
+            },
             ime: "required",
             prezime: "required",
             email: {
@@ -144,6 +157,10 @@ function validateRegister() {
                 required: "Obavezno polje",
                 minlength: "Lozinka mora imati minimum 5 karaktera"
             },
+            lozinka2: {
+                required: "Obavezno polje",
+                equalTo: "Mora se slagati sa lozinkom"
+            },
             ime: "Obavezno polje",
             prezime: "Obavezno polje",
             email: {
@@ -160,5 +177,113 @@ function validateRegister() {
             }
         },
         submitHandler: function (form) { doRegistrationSubmit() }
+    });
+}
+
+function doChangeSubmit() 
+{
+    let data = JSON.parse(localStorage.getItem("ulogovan"));
+    if (data.Uloga == 3) {
+        if ($("input#lokacijavozaca_xkoordinata").val() != data.LokacijaVozaca_XKoordinata || $("input#lokacijavozaca_ykoordinata").val() != data.LokacijaVozaca_YKoordinata) {
+            $("input[name='xkoordinata']").val($("input#lokacijavozaca_xkoordinata").val());
+            $("input[name='ykoordinata']").val($("input#lokacijavozaca_ykoordinata").val());
+            $.post('/api/lokacije/', $('form#changeForm').serialize(), 'json');
+        }
+        else {
+            $(".vozacpolje").hide();
+        }
+    }
+    $.ajax({
+        data: $("#changeForm").serialize(),
+        type: "PUT",
+        url: "api/Korisnici/" + data.KorisnikID,
+        dataType: "json",
+        success: function () {
+            $.get('api/korisnici/' + data.KorisnikID, function (data, status) {
+                localStorage.setItem("ulogovan", JSON.stringify(data));
+            });
+            loadHomepage();
+        },
+        error: function (status) {
+            alert(status);
+        }
+    });
+}
+
+function validateChange() {
+    $("#changeForm").validate({
+        rules: {
+            korisnikId: {
+                required: true,
+                minlength: 4
+            },
+            lozinka: {
+                required: true,
+                minlength: 5
+            },
+            lozinka2: {
+                required: true,
+                equalTo: "#lozinka"
+            },
+            ime: "required",
+            prezime: "required",
+            email: {
+                email: true
+            },
+            jmbg: {
+                required: true,
+                number: true,
+                minlength: 13,
+                maxlength: 13
+            },
+            telefon: {
+                number: true
+            },
+            lokacijavozaca_xkoordinata: {
+                depends: function (element) {
+                    return $("input[name='lokacijavozaca_ykoordinata']").val != null;
+                }
+            },
+            lokacijavozaca_ykoordinata: {
+                depends: function (element) {
+                    return $("input[name='lokacijavozaca_xkoordinata']").val != null;
+                }
+            }
+        },
+        messages: {
+            korisnikId: {
+                required: "Obavezno polje",
+                minlength: "Korisnicko ime mora imati minimum 4 karaktera"
+            },
+            lozinka: {
+                required: "Obavezno polje",
+                minlength: "Lozinka mora imati minimum 5 karaktera"
+            },
+            lozinka2: {
+                required: "Obavezno polje",
+                equalTo: "Mora se slagati sa lozinkom"
+            },
+            ime: "Obavezno polje",
+            prezime: "Obavezno polje",
+            email: {
+                email: "Morate uneti validnu email adresu"
+            },
+            jmbg: {
+                required: "Obavezno polje",
+                number: "Morate uneti broj",
+                minlength: "JMBG mora biti broj od 13 cifara",
+                maxlength: "JMBG mora biti broj od 13 cifara"
+            },
+            telefon: {
+                number: "Morate uneti broj"
+            }, 
+            lokacijavozaca_xkoordinata: {
+                depends: "Uneli ste y koordinatu, morate uneti i x"
+            },
+            lokacijavozaca_xkoordinata: {
+                depends: "Uneli ste x koordinatu, morate uneti i y"
+            }
+        },
+        submitHandler: function (form) { doChangeSubmit() }
     });
 }
