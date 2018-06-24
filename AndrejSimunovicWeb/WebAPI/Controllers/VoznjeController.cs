@@ -11,6 +11,7 @@ using System.Web.Http.Description;
 using WebAPI.Models.Entities;
 using WebApi.Models;
 using System.Web;
+using WebAPI.Models;
 
 namespace WebAPI.Controllers
 {
@@ -18,6 +19,7 @@ namespace WebAPI.Controllers
     {
         private VoznjaEntity db = new VoznjaEntity();
         private KorisnikEntity kor = new KorisnikEntity();
+        private KomentarEntity kom = new KomentarEntity();
         private List<String> GetLoggedUsers
         {
             get
@@ -80,6 +82,52 @@ namespace WebAPI.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
+        [HttpPost]
+        [Route("api/Voznje/OtkaziVoznju")]
+        public IHttpActionResult OktaziVoznju (OtkazivanjeModel otkazivanje)
+        {
+            if (!GetLoggedUsers.Contains(otkazivanje.SenderID))
+            {
+                return Unauthorized();
+            }
+
+            Korisnik k = kor.Korisnici.Find(otkazivanje.SenderID);
+            if (k == null)
+                return NotFound();
+
+            if (k.Uloga != EUloga.MUSTERIJA)
+                return Unauthorized();
+
+            Voznja v = db.Voznjas.Find(otkazivanje.VoznjaID);
+            if (v == null)
+                return NotFound();
+
+            if (v.StatusVoznje != EStatus.KREIRANA)
+                return Content(HttpStatusCode.NotAcceptable, "Ne mozete otkazati ovu voznju");
+
+            v.StatusVoznje = EStatus.OTKAZANA;
+            v.Odrediste_XKoordinata = null;
+            v.Odrediste_YKoordinata = null;
+
+            db.Entry(v).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!VoznjaExists(v.VoznjaID))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return Ok(v);
+        }
         
 
         // POST: api/Voznje
@@ -156,6 +204,45 @@ namespace WebAPI.Controllers
             }
 
             return CreatedAtRoute("DefaultApi", new { id = voznja.VoznjaID }, voznja);
+        }
+
+        [HttpPost]
+        [Route("api/Voznje/DodeliKomentar")]
+        public IHttpActionResult DodeliKomentarVoznji(DodelaKomentaraModel dm)
+        {
+            if (!GetLoggedUsers.Contains(dm.KorisnikID))
+                return Unauthorized();
+
+            Komentar komentar = kom.Komentari.Find(dm.KomentarID);
+            if (komentar == null)
+                return NotFound();
+
+            Voznja v = db.Voznjas.Find(dm.VoznjaID);
+
+            if (v == null)
+                return NotFound();
+
+            v.KomentarID = dm.KomentarID;
+
+            db.Entry(v).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!VoznjaExists(v.VoznjaID))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return Ok(v);
+
         }
 
         // DELETE: api/Voznje/5
