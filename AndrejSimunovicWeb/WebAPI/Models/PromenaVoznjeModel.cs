@@ -5,7 +5,7 @@ using System.Web;
 
 namespace WebAPI.Models
 {
-    public class OtkazivanjeModel
+    public class PromenaVoznjeModel
     {
         public String SenderID { get; set; }
         public String VoznjaID { get; set; }

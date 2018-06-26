@@ -128,8 +128,46 @@ namespace WebAPI.Controllers
             return Ok(retVoznje);
         }
 
+        [HttpGet]
+        [Route("api/Korisnici/GetKreiraneVoznje")]
+        public IHttpActionResult GetKreiraneVoznje([FromUri]String id)
+        {
+            Korisnik kor = db.Korisnici.Include(korisnik => korisnik.Voznje).ToList().Find(k => k.KorisnikID == id);
+            if (kor == null)
+                return NotFound();
+
+            if (!GetLoggedUsers.Contains(id))
+                return Unauthorized();
+
+            if (kor.Uloga == EUloga.MUSTERIJA)
+                return Unauthorized();
+
+            List<Voznja> retVoznje = voznje.Voznjas.Include(kom => kom.KomentarVoznje).Where(i => i.StatusVoznje == EStatus.KREIRANA).ToList();
+            return Ok(retVoznje);
+        }
+
+        [HttpGet]
+        [Route("api/Korisnici/VozaceveVoznje")]
+        public IHttpActionResult GetDriversDrives([FromUri]String id)
+        {
+            Korisnik kor = db.Korisnici.Include(korisnik => korisnik.Voznje).ToList().Find(k => k.KorisnikID == id);
+            if (kor == null)
+                return NotFound();
+
+            if (!GetLoggedUsers.Contains(id))
+                return Unauthorized();
+
+            if (kor.Uloga == EUloga.MUSTERIJA)
+                return Unauthorized();
+
+            List<Voznja> retVoznje = voznje.Voznjas.Include(kom => kom.KomentarVoznje).Where(i => i.VozacID == id).ToList();
+
+            return Ok(retVoznje);
+        }
+
         // PUT: api/Korisnici/5
         [ResponseType(typeof(void))]
+        [Route("api/Korisnici/VozaceveVoznje")]
         public IHttpActionResult PutKorisnik(string id, Korisnik korisnik)
         {
             if (!ModelState.IsValid)
@@ -251,7 +289,7 @@ namespace WebAPI.Controllers
 
         // POST: api/Korisnici
         [ResponseType(typeof(Korisnik))]
-        
+        [Route("api/Korisnici/")]
         public IHttpActionResult PostKorisnik(Korisnik korisnik)
         {
             if (!ModelState.IsValid)
@@ -303,7 +341,13 @@ namespace WebAPI.Controllers
 
             List<Korisnik> vozaci = db.Korisnici.Include(kor => kor.Voznje).ToList().Where(a => a.Uloga == EUloga.VOZAC).ToList();
 
-            List<Korisnik> slobodniVozaci = vozaci.Where(kor => kor.Voznje.Count == 0 || kor.Voznje.Any(voznja => voznja.StatusVoznje != EStatus.UTOKU)).ToList();
+            List<Korisnik> slobodniVozaci = vozaci.Where(kor => {
+                List<Voznja> voznjas = voznje.Voznjas.Where(v => v.VozacID == kor.KorisnikID).ToList();
+                if (voznjas.Any(vz => vz.StatusVoznje == EStatus.UTOKU))
+                    return false;
+                else
+                    return true;
+            }).ToList();
 
             return Ok(slobodniVozaci);
         }

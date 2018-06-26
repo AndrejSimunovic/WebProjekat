@@ -1,7 +1,6 @@
-﻿
-
-//======================Load pages=========================
+﻿//======================Load pages=========================
 function loadHomepage() {
+    //$("a#prikazisvevoznje").hide();
     $.ajax({
         type: "GET",
         url: "api/Korisnici",
@@ -38,7 +37,7 @@ function loadHomepage() {
                                         $("table#voznjaDispecerTabela").append(content);
                                     });
                                 }
-                                return false;
+                                
                             },
                             error: function (jqXHR) {
                                 alert(jqXHR.statusText);
@@ -68,10 +67,70 @@ function loadHomepage() {
                     });
                 }
                 else if (data.Uloga == 2) {
+                    var jsonData = { id: localStorage.getItem('ulogovan') };
+                    $.ajax({
+                        type: "GET",
+                        url: "api/korisnici/DispecerskeVoznje",
+                        data: jsonData,
+                        dataType: "json",
+                        success: function (data) {
+                            isipisTabeluVoznjiDispecer(data);
+                            $("a#prikazisvevoznje").show();
+                            $("a#prikazisvevoznje").bind('click', function (e) {
+                                e.preventDefault();
+                                $.ajax({
+                                    type: "GET",
+                                    dataType: "json",
+                                    url: "api/Voznje/GetAllVoznje",
+                                    data: { id: localStorage.getItem('ulogovan') },
+                                    success: function (data) {
+                                        isipisTabeluVoznjiDispecer(data);
+                                    },
+                                    error: function (jqXHR) {
+                                        alert(jqXHR.statusText);
+                                    }
+                                });
+                            });
+                        },
+                        error: function (jqXHR) {
+                            alert(jqXHR.statusText);
+                        }
+                    });
 
                 }
+                
             }
-
+            
+            if (data.Uloga == 3) {
+                $.ajax({
+                    type: "GET",
+                    dataType: "json",
+                    url: "api/Korisnici/VozaceveVoznje",
+                    data: { id: localStorage.getItem('ulogovan') },
+                    success: function (data) {
+                        ispisiTabeluVoznjiVozac(data);
+                        $("a#kreiranevoznje").show();
+                        $("a#kreiranevoznje").bind('click', function (e) {
+                            e.preventDefault();
+                            $.ajax({
+                                type: "GET",
+                                dataType: "json",
+                                data: { id: localStorage.getItem('ulogovan') },
+                                url: "api/Korisnici/GetKreiraneVoznje",
+                                success: function (data) {
+                                    ispisiKreiraneVoznje(data);
+                                },
+                                error: function (jqXHR) {
+                                    alert(jqXHR.statusText);
+                                }
+                            });
+                        });
+                    },
+                    error: function (jqXHR) {
+                        alert(jqXHR.statusText);
+                    }
+                });
+            }
             $("#promena").show();
             $("#promena").bind('click', function () {
                 $("div#welcomediv").hide();
