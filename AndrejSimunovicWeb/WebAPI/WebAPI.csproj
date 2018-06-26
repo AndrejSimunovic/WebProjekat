@@ -177,6 +177,7 @@
     <Compile Include="Models\Automobil.cs" />
     <Compile Include="Models\AutomobilRegModel.cs" />
     <Compile Include="Models\DodelaKomentaraModel.cs" />
+    <Compile Include="Models\DodelaVoznjeModel.cs" />
     <Compile Include="Models\Entities\KomentarEntity.cs" />
     <Compile Include="Models\Entities\KorisnikEntity.cs" />
     <Compile Include="Models\Entities\AutomobilEntity.cs" />
@@ -186,6 +187,7 @@
     <Compile Include="Models\Komentar.cs" />
     <Compile Include="Models\Korisnik.cs" />
     <Compile Include="Models\Lokacija.cs" />
+    <Compile Include="Models\PotvrdaVoznjeModel.cs" />
     <Compile Include="Models\PromenaVoznjeModel.cs" />
     <Compile Include="Models\PrijavaModel.cs" />
     <Compile Include="Models\VozacRegistrationModel.cs" />
@@ -204,10 +206,12 @@
     <Content Include="Content\partials\change.html" />
     <Content Include="Content\partials\dodajVoznjuDispecer.html" />
     <Content Include="Content\partials\dodajVoznjuMusterija.html" />
+    <Content Include="Content\partials\dodeliVozacu.html" />
     <Content Include="Content\partials\homepageHeader.html" />
     <Content Include="Content\partials\izmeniVoznju.html" />
     <Content Include="Content\partials\komentarOtkazana.html" />
     <Content Include="Content\partials\Login.html" />
+    <Content Include="Content\partials\potvrdaVoznje.html" />
     <Content Include="Content\partials\profileDispecer.html" />
     <Content Include="Content\partials\profileKorisnik.html" />
     <Content Include="Content\partials\profileVozac.html" />

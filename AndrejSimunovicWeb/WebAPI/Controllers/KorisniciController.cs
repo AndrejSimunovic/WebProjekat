@@ -167,7 +167,6 @@ namespace WebAPI.Controllers
 
         // PUT: api/Korisnici/5
         [ResponseType(typeof(void))]
-        [Route("api/Korisnici/VozaceveVoznje")]
         public IHttpActionResult PutKorisnik(string id, Korisnik korisnik)
         {
             if (!ModelState.IsValid)
@@ -289,7 +288,7 @@ namespace WebAPI.Controllers
 
         // POST: api/Korisnici
         [ResponseType(typeof(Korisnik))]
-        [Route("api/Korisnici/")]
+        
         public IHttpActionResult PostKorisnik(Korisnik korisnik)
         {
             if (!ModelState.IsValid)

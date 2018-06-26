@@ -252,6 +252,53 @@ namespace WebAPI.Controllers
             return Ok(ciljanaVoznja);
         }
 
+        [HttpPut]
+        [Route("api/Voznje/PotvrdiVoznju")]
+        public IHttpActionResult PotvrdiVoznju(PotvrdaVoznjeModel potvrda)
+        {
+            if (!GetLoggedUsers.Contains(potvrda.SenderID))
+            {
+                return Unauthorized();
+            }
+
+            Korisnik k = kor.Korisnici.Find(potvrda.SenderID);
+            if (k == null)
+                return NotFound();
+
+            if (k.Uloga != EUloga.VOZAC)
+                return Unauthorized();
+
+            Voznja ciljanaVoznja = db.Voznjas.Find(potvrda.VoznjaID);
+            if (ciljanaVoznja == null)
+                return NotFound();
+
+            if (ciljanaVoznja.StatusVoznje != EStatus.FORMIRANA && ciljanaVoznja.StatusVoznje != EStatus.OBRADJENA && ciljanaVoznja.StatusVoznje != EStatus.PRIHVACENA && ciljanaVoznja.StatusVoznje != EStatus.UTOKU)
+                return Content(HttpStatusCode.NotAcceptable, "Ne mozete potvrditi ovu voznju");
+
+            ciljanaVoznja.StatusVoznje = EStatus.USPESNA;
+            ciljanaVoznja.Odrediste_XKoordinata = potvrda.OdredisteX;
+            ciljanaVoznja.Odrediste_YKoordinata = potvrda.OdredisteY;
+            ciljanaVoznja.Iznos = potvrda.Iznos;
+            db.Entry(ciljanaVoznja).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!VoznjaExists(ciljanaVoznja.VoznjaID))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return Ok(ciljanaVoznja);
+        }
+
         // POST: api/Voznje
         [ResponseType(typeof(Voznja))]
         public IHttpActionResult PostVoznja(Voznja voznja)
@@ -326,6 +373,60 @@ namespace WebAPI.Controllers
             }
 
             return CreatedAtRoute("DefaultApi", new { id = voznja.VoznjaID }, voznja);
+        }
+        [HttpPut]
+        [Route("api/Voznje/DodeliVozacu")]
+        public IHttpActionResult DodeliVozacu(DodelaVoznjeModel model)
+        {
+            if (!GetLoggedUsers.Contains(model.SenderId))
+                return Unauthorized();
+
+            Korisnik dispecer = kor.Korisnici.Find(model.SenderId);
+            Korisnik vozac = kor.Korisnici.Find(model.VozacId);
+            Voznja v = db.Voznjas.Find(model.VoznjaId);
+
+
+            if (dispecer == null || vozac == null || v == null)
+                return NotFound();
+
+            if (dispecer.Uloga != EUloga.DISPECER)
+                return Unauthorized();
+
+            if (vozac.Uloga != EUloga.VOZAC)
+                return Unauthorized();
+
+            List<Voznja> vozaceveVoznje = db.Voznjas.Where(voz => voz.VozacID == vozac.KorisnikID).ToList();
+            if (vozaceveVoznje.Any(voznja => voznja.StatusVoznje == EStatus.UTOKU))
+                return Content(HttpStatusCode.NotAcceptable, "Vozac je trenutno zauzet");
+
+            if (v.StatusVoznje != EStatus.KREIRANA)
+                return Content(HttpStatusCode.NotAcceptable, "Voznja je vec dodeljena");
+
+            v.StatusVoznje = EStatus.OBRADJENA;
+            v.StatusVoznje = EStatus.UTOKU;
+            v.VozacID = vozac.KorisnikID;
+            v.DispecerID = dispecer.KorisnikID;
+            v.Odrediste_XKoordinata = null;
+
+            db.Entry(v).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!VoznjaExists(v.VoznjaID))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return Ok(v);
+
         }
 
         [HttpPost]
