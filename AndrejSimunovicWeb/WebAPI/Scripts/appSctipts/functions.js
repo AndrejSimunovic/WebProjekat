@@ -13,6 +13,30 @@ function loadHomepage() {
             $('div#welcomediv').show();
             $("div#regdiv").hide();
 
+
+            if (data.Uloga == 2) {
+                $("a#blockunblock").show();
+                $("a#blockunblock").bind('click', function (e) {
+                    e.preventDefault();
+                    $.ajax({
+                        type: "GET",
+                        dataType: "json",
+                        url: "api/Korisnici/GetMusterijeIVozace",
+                        data: { id: localStorage.getItem('ulogovan') },
+                        success: function (data) {
+                            ispisiTabeluKorisnika(data);
+                        },
+                        error: function (jqXHR) {
+                            if (jqXHR.status == 403) {
+                                localStorage.removeItem('ulogovan');
+                                location.reload();
+                            }
+                            alert(jqXHR.statusText);
+                            loadHomepage();
+                        }
+                    });
+                });
+            }
             if (data.Uloga == 1 || data.Uloga == 2) {
                 $("#dodajvoznju").show();
                 $("#dodajvoznju").bind('click', function (e) {
@@ -23,29 +47,7 @@ function loadHomepage() {
                         $("div#regdiv").show();
                     }
                     else {
-                        $.ajax({
-                            type: "GET",
-                            dataType: "json",
-                            url: "api/Korisnici/GetFreeDrivers",
-                            data: { id: localStorage.getItem('ulogovan') },
-                            success: function (data) {
-                                if (data.length == 0) {
-                                    alert("Nema slobodnih vozaca");
-
-                                } else {
-                                    $("div#regdiv").show();
-                                    $("div#regdiv").load("./Content/partials/dodajVoznjuDispecer.html", function () {
-                                        var content = selectSlobodneVozace(data);
-                                        $("table#voznjaDispecerTabela").append(content);
-                                    });
-                                }
-                                
-                            },
-                            error: function (jqXHR) {
-                                alert(jqXHR.statusText);
-                                loadHomepage();
-                            }
-                        });
+                        $("div#regdiv").load("./Content/partials/dodajVoznjuDispecer.html");
                     }
                    
                 });
@@ -64,7 +66,15 @@ function loadHomepage() {
 
                         },
                         error: function (jqXHR) {
-                            alert(jqXHR.statusText);
+                            if (jqXHR.status == 403) {
+                                alert(jqXHR.responseJSON);
+                                localStorage.removeItem('ulogovan');
+                                location.reload();
+                            }
+                            else {
+                                alert(jqXHR.statusText);
+                            }
+
                         }
                     });
                 }
@@ -91,13 +101,25 @@ function loadHomepage() {
                                         isipisTabeluVoznjiDispecer(data);
                                     },
                                     error: function (jqXHR) {
+                                        if (jqXHR.status == 403) {
+                                            alert(jqXHR.responseJSON);
+                                            localStorage.removeItem('ulogovan');
+                                            location.reload();
+                                        }
                                         alert(jqXHR.statusText);
                                     }
                                 });
                             });
                         },
                         error: function (jqXHR) {
-                            alert(jqXHR.statusText);
+                            if (jqXHR.status == 403) {
+                                alert(jqXHR.responseJSON);
+                                localStorage.removeItem('ulogovan');
+                                location.reload();
+                            } else {
+                                alert(jqXHR.statusText);
+                            }
+                            
                         }
                     });
 
@@ -127,7 +149,13 @@ function loadHomepage() {
                                     ispisiKreiraneVoznje(data);
                                 },
                                 error: function (jqXHR) {
-                                    alert(jqXHR.statusText);
+                                    if (jqXHR.status == 403) {
+                                        alert(jqXHR.responseJSON);
+                                        localStorage.removeItem('ulogovan');
+                                        location.reload();
+                                    } else {
+                                        alert(jqXHR.statusText);
+                                    }
                                 }
                             });
                         });
@@ -150,11 +178,19 @@ function loadHomepage() {
                         $("div#regdiv").load(data);
                     },
                     error: function (jqHXR) {
-                        alert(jqHXR.status);
-                        if (jqHXR.status == 401) {
+                        if (jqXHR.status == 403) {
+                            alert(jqXHR.responseJSON);
                             localStorage.removeItem('ulogovan');
                             location.reload();
                         }
+                        else if (jqHXR.status == 401) {
+                            localStorage.removeItem('ulogovan');
+                            location.reload();
+                        }
+                        else {
+                            alert(jqXHR.statusText);
+                        }
+                        
                     }
                 });
 
@@ -162,8 +198,8 @@ function loadHomepage() {
             });
             $("#odjava").text("Odjava");
             $("#reg").hide();
-            $("#odjava").bind('click', function () {
-                
+            $("#odjava").bind('click', function (e) {
+                e.preventDefault();
                 $.ajax({
                     type: "POST",
                     data: '=' + localStorage.getItem('ulogovan'),
@@ -174,9 +210,15 @@ function loadHomepage() {
                         return false;
                     },
                     error: function () {
-                        localStorage.removeItem('ulogovan');
-                        location.reload();
-                        return false;
+                        if (jqXHR.status == 403) {
+                            alert(jqXHR.responseJSON);
+                            localStorage.removeItem('ulogovan');
+                            location.reload();
+                        } else {
+                            localStorage.removeItem('ulogovan');
+                            location.reload();
+                            return false;
+                        }
                     }
                 });                    
                 
@@ -198,6 +240,10 @@ function loadHomepage() {
         },
         error: function (jqXHR) {
             if (jqXHR.status == 401) {
+                localStorage.removeItem('ulogovan');
+                location.reload();
+            }
+            else if (jqXHR == 406) {
                 localStorage.removeItem('ulogovan');
                 location.reload();
             }
@@ -227,6 +273,96 @@ function loadLogin() {
         }
 
         return false;
+    });
+}
+
+function getUloga(p) {
+    if (p == 1) {
+        return "Musterija";
+    }
+    else if (p == 2) {
+        return "Dispecer";
+    }
+    else if (p == 3) {
+        return "Vozac";
+    }
+}
+
+function ispisiTabeluKorisnika(data) {
+    var content;
+    if (data.length == 0) {
+        content += "Nema registrovanih vozaca ni musterija";
+    }
+    else {
+        content += '<table border="2" id="musterijevozaci"><thead> <tr> <td colspan="3" align="center">Moje voznje</td></tr>';
+        content += "<tr><td>Korisnicko ime<td><td>Uloga</td></tr>";
+
+        for (i = 0; i < data[0].length; i++) {
+            content += "<tr><td>" + data[0][i].KorisnikID + "</td><td>" + getUloga(data[0][i].Uloga) + "</td><td><a href='' id='odblokiraj'>Odblokiraj</a></td></tr>"
+        }
+        for (i = 0; i < data[1].length; i++) {
+            content += "<tr><td>" + data[1][i].KorisnikID + "</td><td>" + getUloga(data[1][i].Uloga) + "</td><td><a href='' id='blokiraj'>Blokiraj</a></td></tr>"
+        }
+
+        content += "</table>"
+    }
+
+    $("div#regdiv").html(content);
+
+    $("a#blokiraj").bind('click', function (e) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        var korisnikID = $(this).parent().siblings().eq(0).text();
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "api/Korisnici/Blokiraj",
+            data: {
+                "KorisnikID": korisnikID,
+                "SenderID": localStorage.getItem('ulogovan')
+            },
+            success: function () {
+                alert("Uspesno ste blokirali korisnika");
+                loadHomepage();
+            },
+            error: function (jqXHR) {
+                if (jqXHR.status == 406) {
+                    alert(jqXHR.responseJSON);
+                    loadHomepage();
+                } else {
+                    alert(jqXHR.statusText);
+                    loadHomepage();
+                }
+            }
+        });
+    });
+
+    $("a#odblokiraj").bind('click', function (e) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        var korisnikID = $(this).parent().siblings().eq(0).text();
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "api/Korisnici/Odblokiraj",
+            data: {
+                "KorisnikID": korisnikID,
+                "SenderID": localStorage.getItem('ulogovan')
+            },
+            success: function () {
+                alert("Uspesno ste odblokirali korisnika");
+                loadHomepage();
+            },
+            error: function (jqXHR) {
+                if (jqXHR.status == 406) {
+                    alert(jqXHR.responseJSON);
+                    loadHomepage();
+                } else {
+                    alert(jqXHR.statusText);
+                    loadHomepage();
+                }
+            }
+        });
     });
 }
 
@@ -284,6 +420,7 @@ function doDriverRegistrationSubmit() {
 }
 
 var map;
+var markers = [];
 function initMap() {
 
     var uluru = { lat: 45.2671, lng: 19.8335 };
@@ -294,12 +431,16 @@ function initMap() {
 }
 
 function startMap() {
+    for (i = 0; i < markers.length; i++) {
+        markers[i].setMap(null);
+    }
     var uluru = { lat: 45.2671, lng: 19.8335 };
     var marker = new google.maps.Marker({
         position: uluru,
         map: map,
         draggable: true
     });
+    markers.push(marker);
     $("div#map").show();
     $("button#submitMap").show();
     $("button#submitMap").on('click', function (e) {
@@ -721,6 +862,11 @@ function changeScript() {
             validateChange();
         },
         error: function (status, data) {
+            if (status.status == 403) {
+                alert(jqXHR.responseJSON);
+                localStorage.removeItem('ulogovan');
+                location.reload();
+            }
             localStorage.removeItem('ulogovan');
             location.reload();
         }

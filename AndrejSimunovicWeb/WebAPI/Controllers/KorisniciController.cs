@@ -12,6 +12,7 @@ using WebAPI.Models.Entities;
 using WebApi.Models;
 using System.Web;
 using WebAPI.Models;
+using System.Windows;
 
 namespace WebAPI.Controllers
 {
@@ -24,6 +25,13 @@ namespace WebAPI.Controllers
                 return (List<String>)HttpContext.Current.Application["Ulogovani"];
             }
         }
+        private List<String> GetBlockedUsers
+        {
+            get
+            {
+                return (List<String>)HttpContext.Current.Application["Blokirani"];
+            }
+        }
         private KorisnikEntity db = new KorisnikEntity();
         private VoznjaEntity voznje = new VoznjaEntity();
 
@@ -32,14 +40,114 @@ namespace WebAPI.Controllers
         {
             return db.Korisnici;
         }
-        
 
+
+        [HttpGet]
+        [Route("api/Korisnici/GetMusterijeIVozace")]
+        public IHttpActionResult GetNonDispecer([FromUri]string id)
+        {
+            if (!GetLoggedUsers.Contains(id))
+            {
+                return Unauthorized();
+            }
+
+            Korisnik k = db.Korisnici.Find(id);
+            if (k.Uloga != EUloga.DISPECER)
+            {
+                return Unauthorized();
+            }
+
+            List<List<Korisnik>> ret = new List<List<Korisnik>>(); // prvi el su blokirani, drugi ostali
+            List<Korisnik> blokirani = new List<Korisnik>();
+            
+            List<Korisnik> neblokirani = new List<Korisnik>();
+            
+
+            List<Korisnik> sviKorisnici = db.Korisnici.Where(koris => koris.Uloga != EUloga.DISPECER).ToList();
+
+            foreach(Korisnik kor in sviKorisnici)
+            {
+                if (GetBlockedUsers.Contains(kor.KorisnikID))
+                {
+                    blokirani.Add(kor);
+                }
+                else
+                {
+                    neblokirani.Add(kor);
+                }
+            }
+            ret.Add(blokirani);
+            ret.Add(neblokirani);
+
+            return Ok(ret);
+        }
+
+        [HttpPost, Route("api/Korisnici/Blokiraj")]
+        public IHttpActionResult Blokiraj(BlockUnblockModel model)
+        {
+            if (!GetLoggedUsers.Contains(model.SenderID))
+            {
+                return Unauthorized();
+            }
+
+            Korisnik disp = db.Korisnici.Find(model.SenderID);
+            if (disp == null)
+            {
+                return NotFound();
+            }
+
+            if (disp.Uloga != EUloga.DISPECER)
+            {
+                return Unauthorized();
+            }
+
+            if (GetBlockedUsers.Contains(model.KorisnikID))
+            {
+                return Content(HttpStatusCode.NotAcceptable, "Korisnik je vec blokiran");
+            }
+
+            GetBlockedUsers.Add(model.KorisnikID);
+
+            return Ok();
+        }
+
+        [HttpPost, Route("api/Korisnici/Odblokiraj")]
+        public IHttpActionResult Odblokiraj (BlockUnblockModel model)
+        {
+            if (!GetLoggedUsers.Contains(model.SenderID))
+            {
+                return Unauthorized();
+            }
+
+            Korisnik disp = db.Korisnici.Find(model.SenderID);
+            if (disp == null)
+            {
+                return NotFound();
+            }
+
+            if (disp.Uloga != EUloga.DISPECER)
+            {
+                return Unauthorized();
+            }
+
+            if (!GetBlockedUsers.Contains(model.KorisnikID))
+            {
+                return Content(HttpStatusCode.NotAcceptable, "Korisnik je vec odblokiran");
+            }
+
+            GetBlockedUsers.Remove(model.KorisnikID);
+            return Ok();
+        }
 
         // GET: api/Korisnici/5
         [ResponseType(typeof(Korisnik))]
         [HttpGet, Route("api/Korisnici")]
         public IHttpActionResult GetKorisnik([FromUri]string id)
         {
+            if (GetBlockedUsers.Contains(id))
+                return Content(HttpStatusCode.Forbidden, "Blokirani ste!");
+
+
             if (!GetLoggedUsers.Contains(id))
                 return Content(HttpStatusCode.Unauthorized, "Niste ulogovani");
 
@@ -56,6 +164,10 @@ namespace WebAPI.Controllers
         [Route("api/Korisnici/GetPage")]
         public IHttpActionResult GetPage([FromUri]string id)
         {
+            if (GetBlockedUsers.Contains(id))
+                return Content(HttpStatusCode.Forbidden, "Blokirani ste!");
+
+
             if (!GetLoggedUsers.Contains(id))
                 return Content(HttpStatusCode.Unauthorized, "Niste prijvaljeni");
 
@@ -111,6 +223,9 @@ namespace WebAPI.Controllers
         [Route ("api/Korisnici/KorisnickeVoznje")]
         public IHttpActionResult GetUserDrives([FromUri]String id)
         {
+            if (GetBlockedUsers.Contains(id))
+                return Content(HttpStatusCode.Forbidden, "Blokirani ste!");
+
             Korisnik kor = db.Korisnici.Include(korisnik => korisnik.Voznje).ToList().Find(k => k.KorisnikID == id);
 
             if (kor == null)
@@ -132,6 +247,10 @@ namespace WebAPI.Controllers
         [Route("api/Korisnici/GetKreiraneVoznje")]
         public IHttpActionResult GetKreiraneVoznje([FromUri]String id)
         {
+
+            if (GetBlockedUsers.Contains(id))
+                return Content(HttpStatusCode.Forbidden, "Blokirani ste!");
+
             Korisnik kor = db.Korisnici.Include(korisnik => korisnik.Voznje).ToList().Find(k => k.KorisnikID == id);
             if (kor == null)
                 return NotFound();
@@ -150,6 +269,9 @@ namespace WebAPI.Controllers
         [Route("api/Korisnici/VozaceveVoznje")]
         public IHttpActionResult GetDriversDrives([FromUri]String id)
         {
+            if (GetBlockedUsers.Contains(id))
+                return Content(HttpStatusCode.Forbidden, "Blokirani ste!");
+
             Korisnik kor = db.Korisnici.Include(korisnik => korisnik.Voznje).ToList().Find(k => k.KorisnikID == id);
             if (kor == null)
                 return NotFound();
@@ -169,6 +291,9 @@ namespace WebAPI.Controllers
         [Route("api/Korisnici/PromenaLokacije")]
         public IHttpActionResult PromenaLokacije (PromenaLokacijeModel promena)
         {
+            if (GetBlockedUsers.Contains(promena.SenderID))
+                return Content(HttpStatusCode.Forbidden, "Blokirani ste!");
+
             if (!GetLoggedUsers.Contains(promena.SenderID))
                 return Unauthorized();
 
@@ -210,6 +335,8 @@ namespace WebAPI.Controllers
         [HttpPut]
         public IHttpActionResult PutKorisnik(Korisnik korisnik)
         {
+            if (GetBlockedUsers.Contains(korisnik.KorisnikID))
+                return Content(HttpStatusCode.Forbidden, "Blokirani ste!");
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -249,6 +376,9 @@ namespace WebAPI.Controllers
         [Route("api/Korisnici/Prijava")]
         public IHttpActionResult Login (PrijavaModel prijava)
         {
+            if (GetBlockedUsers.Contains(prijava.Username))
+                return Content(HttpStatusCode.Forbidden, "Blokirani ste!");
+
             if (!KorisnikExists(prijava.Username))
                 return BadRequest("Neispravan username ili lozinka");
 
@@ -362,14 +492,14 @@ namespace WebAPI.Controllers
             return Ok(korisnik);
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("api/Korisnici/GetFreeDrivers")]
-        public IHttpActionResult GetFreeDriver([FromUri]string id)
+        public IHttpActionResult GetFreeDriver(NearestFiveModel model)
         {
-            if (!GetLoggedUsers.Contains(id))
+            if (!GetLoggedUsers.Contains(model.KorisnikID))
                 return Unauthorized();
 
-            Korisnik k = db.Korisnici.Find(id);
+            Korisnik k = db.Korisnici.Find(model.KorisnikID);
             if (k == null)
                 return NotFound();
 
@@ -386,26 +516,86 @@ namespace WebAPI.Controllers
                     return true;
             }).ToList();
 
-            return Ok(slobodniVozaci);
-        }
+             
 
-
-
-        // DELETE: api/Korisnici/5
-        [ResponseType(typeof(Korisnik))]
-        public IHttpActionResult DeleteKorisnik(string id)
-        {
-            Korisnik korisnik = db.Korisnici.Find(id);
-            if (korisnik == null)
+            List<Korisnik> retVozaci = new List<Korisnik>();
+            if (slobodniVozaci.Count > 5)
             {
-                return NotFound();
+                Double x, y;
+                try
+                {
+                    x = Double.Parse(model.LokacijaX);
+                    y = Double.Parse(model.LokacijaY);
+                }
+                catch (Exception)
+                {
+                    return InternalServerError();
+                }
+
+                Point lokacija = new Point(x, y);
+                foreach(Korisnik koris in slobodniVozaci)
+                {
+                    if (retVozaci.Count < 5)
+                    {
+                        retVozaci.Add(koris);
+                    }
+                    else
+                    {
+                        Double korisLokX, korisLokY;
+                        try
+                        {
+                            korisLokX = Double.Parse(koris.XKoordinata);
+                            korisLokY = Double.Parse(koris.YKoordinata);
+                        }
+                        catch (Exception)
+                        {
+                            return InternalServerError();
+                        }
+
+                        Point korisLokacija = new Point(korisLokX, korisLokY);
+                        Double korisRazdaljina = Math.Abs(Point.Subtract(lokacija, korisLokacija).Length);
+                        Double najvecaRazdaljina = 0;
+                        int index = -1;
+                        for (int i = 0; i < retVozaci.Count; i++)
+                        {
+                            Double iLokX, iLokY;
+                            try
+                            {
+                                iLokX = Double.Parse(retVozaci[i].XKoordinata);
+                                iLokY = Double.Parse(retVozaci[i].YKoordinata);
+                            }
+                            catch (Exception)
+                            {
+                                return InternalServerError();
+                            }
+
+                            Point iLok = new Point(iLokX, iLokY);
+                            Double iRazdaljina = Math.Abs(Point.Subtract(lokacija, iLok).Length);
+                            if (iRazdaljina > najvecaRazdaljina)
+                            {
+                                najvecaRazdaljina = iRazdaljina;
+                                index = i;
+                            }
+                        }
+
+                        if(najvecaRazdaljina > korisRazdaljina)
+                        {
+                            retVozaci.RemoveAt(index);
+                            retVozaci.Add(koris);
+                        }
+                    }
+                }
+                
+            }
+            else
+            {
+                retVozaci = slobodniVozaci;
             }
 
-            db.Korisnici.Remove(korisnik);
-            db.SaveChanges();
-
-            return Ok(korisnik);
+            return Ok(retVozaci);
         }
+
+
 
         protected override void Dispose(bool disposing)
         {

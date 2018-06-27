@@ -56,7 +56,6 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -65,6 +64,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Windows" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Abstractions" />
@@ -127,6 +127,7 @@
       <Private>True</Private>
       <HintPath>..\packages\Antlr.3.4.1.9004\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\Default\" />
@@ -170,6 +171,8 @@
     <Compile Include="Controllers\KomentariController.cs" />
     <Compile Include="Controllers\KorisniciController.cs" />
     <Compile Include="Controllers\LokacijeController.cs" />
+    <Compile Include="Models\BlockUnblockModel.cs" />
+    <Compile Include="Models\NearestFiveModel.cs" />
     <Compile Include="Models\PromenaLokacijeModel.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Controllers\VoznjeController.cs" />
