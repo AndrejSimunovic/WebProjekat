@@ -294,7 +294,7 @@ function ispisiTabeluKorisnika(data) {
         content += "Nema registrovanih vozaca ni musterija";
     }
     else {
-        content += '<table border="2" id="musterijevozaci"><thead> <tr> <td colspan="3" align="center">Moje voznje</td></tr>';
+        content += '<table border="2" bgcolor="yellow" id="musterijevozaci"><thead> <tr> <td colspan="3" align="center">Moje voznje</td></tr>';
         content += "<tr><td>Korisnicko ime<td><td>Uloga</td></tr>";
 
         for (i = 0; i < data[0].length; i++) {

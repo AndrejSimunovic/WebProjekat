@@ -41,33 +41,66 @@
     </script>
 
     <style>
+        body, html {
+            height: 100%;
+        }
         /* Set the size of the div element that contains the map */
         #map {
             height: 200px; /* The height is 400 pixels */
             width: 100%; /* The width is the width of the web page */
         }
+
+        .bg {
+            /* The image used */
+            background-image: url('slike/taxi.jpg');
+   
+            /* Full height */
+            height: 100%;
+            /* Center and scale the image nicely */
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .cg {
+            background-color: grey;
+        }
+
+        .button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+        }
+
+        .h {
+            color: red;
+        }
     </style>
 
 
 </head>
-<body>
+<body class="bg">
     <header id="hdr">
-        <a href="" id="reg">Registracija</a>
-        <a href="" id="odjava"></a>
-        <a href="" id="promena" hidden>Profil</a>
-        <a href="" id="dodajvozaca" hidden>Dodaj vozaca</a>
-        <a href="" id="dodajvoznju" hidden>Zakazi voznju</a>
-        <a href="" id="prikazisvevoznje" hidden>Prikazi sve voznje</a>
-        <a href="" id="kreiranevoznje" hidden>Prikazi kreirane voznje</a>
-        <a href="" id="blockunblock" hidden>Blokiraj/Odblokiraj</a>
+        <a href="" id="reg" style="color: darkgreen">Registracija</a>
+        <a href="" id="odjava" style="color: darkgreen"></a>
+        <a href="" id="promena" style="color: darkgreen" hidden>Profil</a>
+        <a href="" id="dodajvozaca" style="color: darkgreen" hidden>Dodaj vozaca</a>
+        <a href="" id="dodajvoznju" style="color: darkgreen" hidden>Zakazi voznju</a>
+        <a href="" id="prikazisvevoznje" style="color: darkgreen" hidden>Prikazi sve voznje</a>
+        <a href="" id="kreiranevoznje" style="color: darkgreen" hidden>Prikazi kreirane voznje</a>
+        <a href="" id="blockunblock"  style="color: darkgreen" hidden>Blokiraj/Odblokiraj</a>
     </header>
-    <h1>Taxi sluzba</h1>
-    <div id="welcomediv"></div>
+    <h1 class="h">Taxi sluzba</h1>
+    <div id="welcomediv" class="h"></div>
     <div id="regdiv">
-
+     
     </div>
     <div id="map" hidden>
-
     </div>
     <button id="submitMap" hidden>Potvrdi</button>
     <div id="errdiv" />

@@ -565,7 +565,7 @@ function ispisiKreiraneVoznje(data) {
         var content = "<p> Nema kreiranih voznji <p>"
     }
     else {
-        var content = '<table border="2"> <tr> <td colspan="11" align="center">Moje voznje</td>';
+        var content = '<table border="2" bgcolor="yellow"> <tr> <td colspan="11" align="center">Moje voznje</td>';
         content += "<tr><td>Datum zakazivanja</td><td>Musterija</td><td>Lokacija X koordinata</td><td>Lokaxija Y koordinata</td><td>Odrediste X koordinata</td><td>Odrediste Y koordinata</td>\
                 <td>Zeljeni tip</td><td>Status voznje </td></tr > ";
         $.each(data, function (i, val) {
@@ -666,7 +666,7 @@ function ispisiTabeluVoznjiVozac(data) {
         content += "</br> <label> Datum od </label> <input type='date' id='od'/> <label> Datum do </label> <input type='date' id='do'/>";
         content += "</br><label>Filtriranje po statusu voznje</label>" + getSelect();
 
-        content += '<table border="2" id="vozacTabela"><thead> <tr> <td colspan="11" align="center">Moje voznje</td></tr>';
+        content += '<table border="2" bgcolor="yellow" id="vozacTabela"><thead> <tr> <td colspan="11" align="center">Moje voznje</td></tr>';
         content += "<tr><th class='datum'>Datum zakazivanja</th><th class='nosort'>Musterija</th><th class='nosort'>Dispecer</th><th class='nosort'>Lokacija X koordinata</th><th class='nosort'>Lokaxija Y koordinata</th><th class='nosort'>Odrediste X koordinata</th><th class='nosort'>Odrediste Y koordinata</th>\
                 <th class='nosort'>Zeljeni tip</th><th class='nosort'>Iznos</th><th class='nosort'>Status voznje</th><th class='nosort'>Komentar</th> <th class='ocena'>Ocena</th> <th class='nosort'>Datum objave</th> <th class='nosort'>Korisnicko ime</th><td class='nosort'></td><td class='nosort'></td></tr></thead><tbody> ";
         
@@ -834,7 +834,7 @@ function isipisTabeluVoznjiDispecer(data) {
         content += "</br><label>Ime vozaca</label><input type='text' id='ime'/> <label>Prezime vozaca</label><input type='text' id='prezime'/>"
         content += "</br><label>Ime musterije</label><input type='text' id='imem'/> <label>Prezime musterije</label><input type='text' id='prezimem'/>"
 
-        content += '<table border="2" id="dispecerTabela"><thead> <tr> <td colspan="11" align="center">Moje voznje</td>';
+        content += '<table border="2" bgcolor="yellow" id="dispecerTabela"><thead> <tr> <td colspan="11" align="center">Moje voznje</td>';
         content += "<tr><td class='datum'>Datum zakazivanja</td><td class='nosort'>Vozac</td><td class='nosort'>Vozac ime</td> <td class='nosort'>Vozac prezime </td>\
                 <td class='nosort'>Musterija</td><td class='nosort'>Musterija ime</td><td class='nosort'>Musterija prezime</td><td class='nosort'>Lokacija X koordinata</td>\
                 <td class='nosort'>Lokaxija Y koordinata</td><td class='nosort'>Odrediste X koordinata</td><td class='nosort'>Odrediste Y koordinata</td>\
@@ -1093,7 +1093,7 @@ function ispisiTabeluVoznji(data) {
         content += "</br> <label> Datum od </label> <input type='date' id='od'/> <label> Datum do </label> <input type='date' id='do'/>";
 
 
-        content += '<table border="2" id="musterijaTabela"><thead> <tr> <td colspan="15" align="center">Moje voznje</td>';
+        content += '<table border="2" bgcolor="yellow" id="musterijaTabela"><thead> <tr> <td colspan="15" align="center">Moje voznje</td>';
         content += "<tr><th class='datum'>Datum zakazivanja</th><th class='nosort'>Vozac</th><th class='nosort'>Lokacija X koordinata</th><th class='nosort'>Lokaxija Y koordinata</th><th class='nosort'>Odrediste X koordinata</th><th class='nosort'>Odrediste Y koordinata</th>\
                 <th class='nosort'>Zeljeni tip</th><th class='nosort'>Iznos</th><th class='nosort'>Status voznje</th><th class='nosort'>Komentar</th> <th class='ocena'>Ocena</th> <th class='nosort'>Datum objave</th> <th class='nosort'>Korisnicko ime</th><th></th><th></th></tr ><thead> <tbody>";
         content += "</br><label>Filtriranje po statusu voznje</label>" + getSelect();
